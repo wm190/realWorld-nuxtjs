@@ -1,7 +1,9 @@
-name: GitHub Actions Demo
+name: Publish And Deploy Demo
 on:
-push: tags:
-- 'v*'
+  push:
+    tags:
+      - 'v*'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
