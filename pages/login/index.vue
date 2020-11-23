@@ -83,8 +83,7 @@ export default {
         this.$store.commit('setUser', data.user)
         this.$router.push('/')
       } catch (error) {
-        // this.errors = error.response.data.errors
-        console.log(error)
+        this.errors = error.response.data.errors
       }
     }
   }

@@ -5,7 +5,8 @@ module.exports = {
     '~plugins/dayjs.js'
   ],
   server: {
-    host: '0.0.0.0'
+    host: '0.0.0.0',
+    port: 9090
   },
   router: {
     linkActiveClass: 'active',
@@ -44,7 +45,7 @@ module.exports = {
               component: resolve(__dirname, 'pages/settings'),
             },
             {
-              path: '/editor',
+              path: '/editor/:slug',
               name: 'editor',
               component: resolve(__dirname, 'pages/editor'),
             },

@@ -31,8 +31,14 @@
                   ></textarea>
                 </fieldset>
                 <fieldset class="form-group">
-                  <input type="text" class="form-control" placeholder="Enter tags" v-model="article.tagList"/>
-                  <div class="tag-list"></div>
+                  <input type="text" class="form-control" placeholder="Enter tags" v-model="tagList"/>
+                  <div class="tag-list" v-if="isEdit">
+                    <!-- 编辑 -->
+                    <span class="tag-default tag-pill" v-for="tag in article.tagList" :key="tag">
+                      <i class="ion-close-round" @click="removeTag(tag)"></i>
+                      {{tag}}
+                    </span>
+                  </div>
                 </fieldset>
                 <button class="btn btn-lg pull-xs-right btn-primary" type="button" @click="onSubmit">Publish Article</button>
               </fieldset>
@@ -45,10 +51,15 @@
 </template>
 
 <script>
-import { createArticle } from '@/api/article'
+import { createArticle, getArtile, updateArticle } from '@/api/article'
 export default {
   // 在路由匹配组件渲染之前会先执行中间件
   middleware: 'authenticated',
+  computed: {
+    isEdit () {
+      return !!this.$route.params.slug
+    }
+  },
   data() {
     return {
       article: {
@@ -56,14 +67,35 @@ export default {
         description: '',
         body: '',
         tagList: []
-      }
+      },
+      tagList: ''
     };
   },
   methods: {
     async onSubmit () {
-      this.article.tagList = this.article.tagList.split(',')
-      await createArticle({ article: this.article })
-      
+      this.tagList = this.tagList && this.tagList.split(',')
+      if (this.isEdit) {
+        this.article.tagList = this.article.tagList.concat(this.tagList)
+        await updateArticle({ 
+          slug: this.$route.params.slug, 
+          data: { article: this.article }
+        })
+      } else {
+        this.article.tagList = this.tagList
+        await createArticle({ article: this.article })
+      }
+      this.$router.push(`/article/${this.$route.params.slug}`)
+    },
+    removeTag (tag) {
+      this.article.tagList.splice(this.article.tagList.findIndex(item => item === tag), 1)
+    }
+  },
+  async asyncData ({ params}) {
+    if (params.slug) {
+      // 编辑
+      const { data } = await getArtile(params.slug)
+      const { article } = data
+      return { article }
     }
   }
 };

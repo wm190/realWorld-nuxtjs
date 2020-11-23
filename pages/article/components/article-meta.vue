@@ -22,38 +22,71 @@
         </nuxt-link>
         <span class="date">{{ article.areatedAt | date('MMM DD,YYYY')}}</span>
       </div>
-      <button 
-        class="btn btn-sm btn-outline-secondary" 
-        :class="{active: article.author.following}"
-        :disabled="followDisabled"
-        @click="onFollow"
-      >
-        <i class="ion-plus-round"></i>
-        &nbsp;
-          {{article.author.following ? 'Unfollow' : 'Follow'}} {{ article.author.username }}
-      </button>
-      &nbsp;&nbsp;
-      <button 
-        class="btn btn-sm btn-outline-primary" 
-        :class="{active: article.favorited}"
-        :disabled="article.favoriteDisabled"
-        @click="onFavorite">
-        <i class="ion-heart"></i>
-        &nbsp;
-        Favorite Post
-        <span class="counter">({{ article.favoritesCount }})</span>
-      </button>
+      <!-- 本人 -->
+      <template v-if="isCurrentUser">
+         <nuxt-link 
+          class="btn btn-sm btn-outline-secondary" 
+          :to="{
+            name: 'editor',
+            slug: this.$route.params.slug
+          }"
+        >
+          <i class="ion-edit"></i>
+          &nbsp;
+          Edit Article
+        </nuxt-link>
+        &nbsp;&nbsp;
+        <button 
+          class="btn btn-sm btn-outline-primary btn-outline-danger" 
+          :disabled="article.favoriteDisabled"
+          @click="onDelete">
+          <i class="ion-trash-a"></i>
+          &nbsp;
+          Delete Article
+        </button>
+      </template>
+      <!-- 其它作者 -->
+      <template v-else>
+        <button 
+          class="btn btn-sm btn-outline-secondary" 
+          :class="{active: article.author.following}"
+          :disabled="followDisabled"
+          @click="onFollow"
+        >
+          <i class="ion-plus-round"></i>
+          &nbsp;
+            {{article.author.following ? 'Unfollow' : 'Follow'}} {{ article.author.username }}
+        </button>
+        &nbsp;&nbsp;
+        <button 
+          class="btn btn-sm btn-outline-primary" 
+          :class="{active: article.favorited}"
+          :disabled="article.favoriteDisabled"
+          @click="onFavorite">
+          <i class="ion-heart"></i>
+          &nbsp;
+          Favorite Post
+          <span class="counter">({{ article.favoritesCount }})</span>
+        </button>
+      </template>
     </div>
   </div>
 </template>
 
 <script>
-import { followUser, unfollowUser, deleteFavorite, addFavorite } from '@/api/article'
+import { followUser, unfollowUser, deleteFavorite, addFavorite, deleteArticle } from '@/api/article'
+import { mapState } from 'vuex'
 export default {
   props: {
     article: {
       type: Object,
       required: true
+    }
+  },
+  computed: {
+    ...mapState(['user']),
+    isCurrentUser () {
+      return this.article.author.username === this.user.username
     }
   },
   data () {
@@ -89,6 +122,10 @@ export default {
         this.article.favoritesCount += 1
       }
       this.article.favoriteDisabled = false
+    },
+    async onDelete () {
+      await deleteArticle(this.article.slug)
+      this.$router.push('/')
     }
   }
 }
